@@ -92,6 +92,23 @@ bool HeightFieldSandRigidInteraction::initialize()
 
 void HeightFieldSandRigidInteraction::advance(Real dt)
 {
+    //debug
+    if (m_rigidSolver && m_sandSolver)
+        //if(false)
+    {
+        m_interactSolver->setPreBodyInfo();
+    }
+    if (m_rigidSolver)
+    {
+        Real rdt = dt / m_subRigidStep;
+        for (int i = 0; i < m_subRigidStep; ++i)
+        {
+            m_rigidSolver->forwardSubStepGPU2(rdt);
+        }
+        m_rigidSolver->updateGPUToCPUBody();
+    }
+    //----------------------
+
     CTimer timer;
     timer.start();
 
@@ -101,7 +118,7 @@ void HeightFieldSandRigidInteraction::advance(Real dt)
         for (int i = 0; i < m_subStep; ++i)
         {
             this->advectSubStep(subdt);
-
+            printf("  Cur time step:  %f\n", subdt);
             //float subdt2 = m_sandSolver->getMaxTimeStep();
             //printf("  Cur max time step:  %f\n", subdt2);
         }
@@ -115,7 +132,7 @@ void HeightFieldSandRigidInteraction::advance(Real dt)
             dt -= subdt;
             printf("  Cur time step:  %f\n", subdt);
 
-            this->advectSubStep(subdt);
+            this->advectSubStep(subdt);//subdt//0.004是个蝴蝶
 
         } while (dt > 0);
     }
@@ -142,25 +159,28 @@ void HeightFieldSandRigidInteraction::advectSubStep(Real dt)
         //m_sandSolver->stepSimulation(dt);
     }
 
+    //deoldbug
+    //if (m_rigidSolver && m_sandSolver)
+    ////if(false)
+    //{
+    //    m_interactSolver->setPreBodyInfo();
+    //}
+    //if (m_rigidSolver)
+    //{
+    //    Real rdt = dt / m_subRigidStep;
+    //    for (int i = 0; i < m_subRigidStep; ++i)
+    //    {
+    //        m_rigidSolver->forwardSubStepGPU2/*solveSubStepGPU*/(rdt);//这里为啥用的GPU呀，应该是CPU啊
+    //    }
+    //    m_rigidSolver->updateGPUToCPUBody();
+    //}
+
     if (m_rigidSolver && m_sandSolver)
     //if(false)
     {
-        m_interactSolver->setPreBodyInfo();
-    }
+        //tang
+        //m_rigidSolver->pushBodyData();
 
-    if (m_rigidSolver)
-    {
-        Real rdt = dt / m_subRigidStep;
-        for (int i = 0; i < m_subRigidStep; ++i)
-        {
-            m_rigidSolver->forwardSubStepGPU2(rdt);//这里为啥用的GPU呀，应该是CPU啊
-        }
-        m_rigidSolver->updateGPUToCPUBody();
-    }
-
-    if (m_rigidSolver && m_sandSolver)
-    //if(false)
-    {
         this->_updateSandHeightField();
         
         m_interactSolver->updateBodyAverageVel(dt);
@@ -180,8 +200,12 @@ void HeightFieldSandRigidInteraction::advectSubStep(Real dt)
                 m_sandSolver->applyVelocityChange(dt, m_minGi, m_minGj, m_sizeGi, m_sizeGj);
             }
         }
-        
-        m_rigidSolver->synFromBodiedToRigid();
+        //tang
+        //m_rigidSolver->popBodyData();
+        //m_rigidSolver->updateCPUToGPUBody();
+
+        //debug ChengXiao
+        //m_rigidSolver->synFromBodiedToRigid();
     }
 
     if (m_sandSolver)

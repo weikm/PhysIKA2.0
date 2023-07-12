@@ -920,7 +920,7 @@ void                                DemoHeightFieldSandLandMultiRigid2::createSc
     std::vector<float> surfaceHeight(sandinfo.nx * sandinfo.ny);
     std::vector<int>   humpBlock = { 0, 20 + 0, 5, 25 + 0 };
     //fillGrid2D(&(landHeight[0]), sandinfo.nx, sandinfo.ny, 0.0f);
-    fillGrid2D(&(surfaceHeight[0]), sandinfo.nx, sandinfo.ny, 0.25f);
+    fillGrid2D(&(surfaceHeight[0]), sandinfo.nx, sandinfo.ny, 0.25f);//0.25
     //fillGrid2D(&(surfaceHeight[0]), sandinfo.nx, sandinfo.ny, humpBlock, 0.5f);
 
     HostHeightField1d hosthf;
@@ -941,8 +941,8 @@ void                                DemoHeightFieldSandLandMultiRigid2::createSc
             //if (landheight[i*sandinfo.ny + j] < 0)
             //    landheight[i*sandinfo.ny + j] = 0.0f;
             double curh = 0.5 * maxh - hosthf(i, j);
-            if (curh < 0.2)
-                curh = 0.2;
+            if (curh < 0.4)//0.2
+                curh = 0.2;//0.2
             landHeight[i * sandinfo.ny + j] = curh;
         }
     }

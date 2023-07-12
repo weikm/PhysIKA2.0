@@ -181,14 +181,29 @@ public:
     {
         // update linear velocity.
         linVelocity = (pose.position - prevPose.position) / dt;
-
         //printf(" Body Lin v:  %lf, %lf, %lf\n", linVelocity[0], linVelocity[1], linVelocity[2]);
+        //for (int i = 0; i < 3; i++) {
+        //    linVelocity[i] = linVelocity[i] > 40.0f ? 40.0f : linVelocity[i];
+        //    linVelocity[i] = linVelocity[i] < -40.0f ? -40.0f : linVelocity[i];
+        //}
+        //linVelocity[1] > 7.0f ? 7.0f : linVelocity[1];
 
         // update angular velocity.
         Quaternion<Real> relq = pose.rotation * prevPose.rotation.getConjugate();
+        //printf(" relq:  %lf, %lf, %lf, %lf\n", relq[0], relq[1], relq[2], relq[3]);
+        
+        //printf("时间步=%f\n",dt);
+
         Real             fac  = 2.0 / dt;
         fac *= relq.w() < 0.0 ? -1.0 : 1.0;
         angVelocity = { relq.x() * fac, relq.y() * fac, relq.z() * fac };
+        //cutdown230707偶尔会一卡一卡
+        //for(int i=0;i<3;i++){
+        //    angVelocity[i] = angVelocity[i] >  7.0f ?  7.0f : angVelocity[i];
+        //    angVelocity[i] = angVelocity[i] < -7.0f ? -7.0f : angVelocity[i];
+        //}
+        //printf(" update Body Ang v:  %lf, %lf, %lf\n", angVelocity[0], angVelocity[1], angVelocity[2]);
+
     }
 
     COMM_FUNC void updateVelocityChange(Real dt)

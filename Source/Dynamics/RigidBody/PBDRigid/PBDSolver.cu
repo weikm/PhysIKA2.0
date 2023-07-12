@@ -510,6 +510,26 @@ void PBDSolver::updateGPUToCPUBody()
     }
 }
 
+//tang
+static std::vector<PBDBodyInfo<double>> sSavedBodys;
+
+void PBDSolver::pushBodyData()
+{
+    if (m_nPermanentBodies > 0 &&
+        sSavedBodys.size() != m_nPermanentBodies)
+    {
+        sSavedBodys.resize(m_nPermanentBodies);
+    }
+
+    memcpy(sSavedBodys.data(), m_CPUBodys.data(), sizeof(PBDBodyInfo<double>) * m_nPermanentBodies);
+}
+
+void PBDSolver::popBodyData()
+{
+    memcpy(m_CPUBodys.data(), sSavedBodys.data(), sizeof(PBDBodyInfo<double>) * m_nPermanentBodies);
+}
+//------------
+
 __device__ void updateGlobalPose(BodyPose<double>* ppose0, BodyPose<double>* ppose1, PBDJoint<double>& joint)
 {
     joint.globalPose0 = joint.localPose0;
@@ -1419,7 +1439,7 @@ __global__ void PBD_solveContactJoints(PBDJoint<double>* joints, int nJoints, Ve
             //dn = pn;
         }
 
-        pcorr         = tmpv * dn;
+        pcorr         = tmpv * dn * 5.02f;//tang: *5.02
         double lambda = 0.0;
 
         // Constraint normal position.
@@ -1552,7 +1572,10 @@ __global__ void PBD_updateVelocity(PBDBodyInfo<double>* bodys, int nbodys, doubl
     if (tid < nbodys)
     {
         (bodys + tid)->updateVelocity(dt);
+        //printf("%d\n", tid);
     }
+    //printf("lin vel =%f %f %f \n",(bodys + tid)->linVelocity[0], (bodys + tid)->linVelocity[1], (bodys + tid)->linVelocity[2]);
+    
 }
 
 /**
@@ -1580,6 +1603,29 @@ __global__ void PBD_updatePosChange(PBDBodyInfo<double>* bodys,
             body->pose.position += (*(dx + tid)) * alpha;
             body->pose.rotation += (*(dq + tid)) * alpha;
             body->pose.rotation.normalize();
+            //debug
+            //printf("tid=%d, dertP=%f, %f, %f \n", tid, 
+            //    ((*(dx + tid)) * alpha)[0], 
+            //    ((*(dx + tid)) * alpha)[1], 
+            //    ((*(dx + tid)) * alpha)[2]
+            //);
+            //if (((*(dx + tid)) * alpha)[1] > 0.1|| ((*(dx + tid)) * alpha)[0] > 0.1 || ((*(dx + tid)) * alpha)[2] > 0.1) {
+            //    //断点
+            //    ERROR;
+            //}
+            //if (((*(dx + tid)) * alpha)[1] < -0.1 || ((*(dx + tid)) * alpha)[0] <- 0.1 || ((*(dx + tid)) * alpha)[2] <- 0.1) {
+            //    //断点
+            //    ERROR;
+            //}
+ /*           printf("tid=%d, dertR=%f,  %f, %f,%f \n", tid, 
+                ((*(dq + tid)) * alpha)[0], 
+                ((*(dq + tid)) * alpha)[1], 
+                ((*(dq + tid)) * alpha)[2],
+                ((*(dq + tid)) * alpha)[3]
+            );*/
+            
+
+
         }
 
         if (resetNConstraint)

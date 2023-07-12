@@ -24,7 +24,7 @@ void SandInteractionForceSolver::addSDF(DistanceField3D<DataType3f>& sdf, int ri
 
     if (rigidid < 0)
         rigidid = m_sdfMap.size();
-    m_sdfMap[rigidid] = sdf;
+    m_sdfMap[rigidid] = sdf;//initialize in createscene
 }
 
 __global__ void SandIFS_updateSinkInfo(
@@ -51,9 +51,9 @@ __global__ void SandIFS_updateSinkInfo(
 
     double hland = land.get(pointd[0], pointd[2]);
     double curh  = pointd[1] /*+ hland*/;
-    double htop  = hland;
+    double htop  = hland;//top is lower
     double hbot  = curh;
-    while (curh > hland)
+    while (curh > hland + 1e-6)//done
     {
         pointd    = positions[tid];
         pointd[1] = curh;
@@ -327,6 +327,9 @@ void SandInteractionForceSolver::computeSingleBuoyance(int i, Real dt)
 
     this->_applyForceTorque(buoF, buoT, i, dt);
 
+    // wkm add to debug
+    cuSynchronize();
+
     if (false)
     {
         printf("  Body vel(after BUO):  %lf %lf %lf,  %lf %lf %lf\n",
@@ -557,6 +560,10 @@ void SandInteractionForceSolver::computeSingleDragForce(int i, Real dt)
     dragF *= alpha;
     dragT *= alpha;
 
+    // wkm add to debug
+    cuSynchronize();
+
+
     if (false)
     {
         printf("AFT:   Drag F: %lf %lf %lf, Drag T: %lf %lf %lf, Alpha: %lf \n",
@@ -761,6 +768,8 @@ void SandInteractionForceSolver::computeParticleInteractVelocity(int i, Real dt)
     {
         cuExecute(m_particlePos->size(), SandIFS_updateParticleVel, m_dVel, *m_particleVel, *m_particleMass, *m_particlePos, m_topH, m_botH, m_topNormal, m_botNormal, *m_land, *m_body, i, m_sampleSize, m_rho, m_e, m_CsHorizon, m_CsVertical, m_Cprob);
     }
+    // wkm add to debug
+    cuSynchronize();
 }
 
 __global__ void SandIFS_accumulate(
@@ -839,31 +848,31 @@ __global__ void SandIFS_accumulate(
 
 //}
 
-void SandInteractionForceSolver::compute(Real dt)
-{
-    if (!m_body || m_body->size() <= 0)
-        return;
-    if (!m_particlePos || m_particlePos->size() <= 0)
-        return;
-
-    for (int i = 0; i < m_body->size(); ++i)
-    {
-
-        // Check collision filter.
-        if (m_prigids && !collisionValid((*m_prigids)[i]))
-            continue;
-
-        this->updateSinkInfo(i);
-        this->computeSingleBuoyance(i, dt);
-        this->_copyHostBodyToGPU(i);
-        this->computeSingleDragForce(i, dt);
-        this->_copyHostBodyToGPU(i);
-
-        this->computeParticleInteractVelocity(i, dt);
-
-        this->_smoothVelocityChange();
-    }
-}
+//void SandInteractionForceSolver::compute(Real dt)
+//{
+//    if (!m_body || m_body->size() <= 0)
+//        return;
+//    if (!m_particlePos || m_particlePos->size() <= 0)
+//        return;
+//
+//    for (int i = 0; i < m_body->size(); ++i)
+//    {
+//
+//        // Check collision filter.
+//        if (m_prigids && !collisionValid((*m_prigids)[i]))
+//            continue;
+//
+//        this->updateSinkInfo(i);
+//        this->computeSingleBuoyance(i, dt);
+//        this->_copyHostBodyToGPU(i);
+//        this->computeSingleDragForce(i, dt);
+//        this->_copyHostBodyToGPU(i);
+//
+//        this->computeParticleInteractVelocity(i, dt);
+//
+//        this->_smoothVelocityChange();
+//    }
+//}
 
 void SandInteractionForceSolver::computeSingleBody(int i, Real dt)//TODO
 {
@@ -899,7 +908,7 @@ void SandInteractionForceSolver::computeSingleBody(int i, Real dt)//TODO
     this->computeSingleDragForce(i, dt);
     //timer.stop();
     //printf("   Interact, Drag force time:  %lf\n", timer.getElapsedTime());
-
+    
     //timer.start();
     this->_copyHostBodyToGPU(i);
     //timer.stop();
@@ -1001,10 +1010,10 @@ void SandInteractionForceSolver::_smoothVelocityChange()
     else
     {
 
-        cuExecute(m_particlePos->size(), SandIFS_smoothVelocityChange, *m_particleVel, m_dVel, *m_particleMass, *m_particlePos, m_neighbor.getValue(), m_kernel, m_smoothLength
-
-        );
+        cuExecute(m_particlePos->size(), SandIFS_smoothVelocityChange, *m_particleVel, m_dVel, *m_particleMass, *m_particlePos, m_neighbor.getValue(), m_kernel, m_smoothLength);
     }
+    // wkm add to debug
+    cuSynchronize();
 }
 
 double SandInteractionForceSolver::_enlargerBuoyancy(double f, const Vector3d& t, double mass)

@@ -152,6 +152,12 @@ public:
     void updateCPUToGPUBody();
     void updateGPUToCPUBody();
 
+    //tang
+    void PBDSolver::pushBodyData();
+    void PBDSolver::popBodyData();
+    //------------
+
+
     /**
         * @brief Integrate body force and velocity.
         * @note Deplicated function.

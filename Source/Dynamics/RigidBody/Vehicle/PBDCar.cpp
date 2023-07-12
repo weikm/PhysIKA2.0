@@ -524,7 +524,7 @@ namespace PhysIKA {
 
             // Wheel rigid.
             m_wheels[i] = std::make_shared<RigidBody2<DataType3f>>("Wheel" + std::to_string(i));
-            m_wheels[i]->setMu(5.0);
+            m_wheels[i]->setMu(25.0);//5.0,20
             steeringRigid->addChild(m_wheels[i]);
             int idwheel = m_rigidSolver->addRigid(m_wheels[i]);
             idwheels[i] = idwheel;
@@ -603,6 +603,13 @@ namespace PhysIKA {
 
         //Vector3f carVel = m_chassis->getLinearVelocity();
         //printf("Car Vel:  %lf %lf %lf \n", carVel[0], carVel[1], carVel[2]);
+
+        //int diedai = 0;
+        //for (; diedai < 100; diedai++) {
+        //    forward(0.004);
+        //    goLeft(0.004);
+        //}
+
 
         return;
     }
