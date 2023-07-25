@@ -591,9 +591,11 @@ namespace PhysIKA {
         //_updateWheelRotation(dt);
 
         //this->updateForce(dt);
+        //CTimer a;
+        //a.start();
         if (!m_accPressed)
         {
-            forwardForce = 0;
+            forwardForce = 10000;//
         }
         m_accPressed = false;
 
@@ -601,7 +603,9 @@ namespace PhysIKA {
         this->_doVelConstraint(dt);
         this->m_rigidSolver->setBodyDirty();
 
-        //Vector3f carVel = m_chassis->getLinearVelocity();
+        //a.stop();
+        //std::cout << "CarTime = " << a.getElapsedTime() << std::endl;
+        Vector3f carVel = m_chassis->getLinearVelocity();
         //printf("Car Vel:  %lf %lf %lf \n", carVel[0], carVel[1], carVel[2]);
 
         //int diedai = 0;

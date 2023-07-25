@@ -509,7 +509,7 @@ public:
     std::vector<std::shared_ptr<RigidMeshRender>> m_rigidRenders;
 
     std::shared_ptr<PBDCar> m_car;
-
+    std::vector<shared_ptr<PBDCar>> m_newcar;
     std::shared_ptr<SSESandSolver> m_psandsolver;
 
     bool m_rigidVisible = true;

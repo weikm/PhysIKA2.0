@@ -2414,7 +2414,7 @@ void PBDSolver::forwardSubStepGPU2(Real dt)
 {
     // Call custom update function.
     this->doCustomUpdate(dt);
-
+    //std::cout << "调一次" << std::endl;
     //printf("\n");
 
     // Update body data.
@@ -2423,7 +2423,8 @@ void PBDSolver::forwardSubStepGPU2(Real dt)
         _onRigidDataDirty();
         m_bodyDataDirty = false;
     }
-
+    CTimer timer1;
+    timer1.start();
     // Integrate position and velocity.
     if (m_nBodies > 0)
     {
@@ -2444,12 +2445,23 @@ void PBDSolver::forwardSubStepGPU2(Real dt)
 
     synFromBodiedToRigid();
 
+    timer1.stop();
+    //printf("time1 = %f", timer1.getElapsedTime());
+
+
+    CTimer timer2;
+    timer2.start();
     // Do contact detection.
     if (m_narrowPhaseDetection)
     {
         m_narrowPhaseDetection(this, dt);
     }
+    timer2.stop();
+    //printf("time2 = %f", timer2.getElapsedTime());
 
+
+    CTimer timer3;
+    timer3.start();
     // Solve none-contact constraints.
     if (/*m_nPermanentJoints*/ m_nJoints > 0)
     {
@@ -2502,7 +2514,8 @@ void PBDSolver::forwardSubStepGPU2(Real dt)
             cuSynchronize();
         }
     }
-
+    timer3.stop();
+    //printf("time3 = %f", timer3.getElapsedTime());
     //synFromBodiedToRigid();
 
     //// Do contact detection.
@@ -2550,13 +2563,15 @@ void PBDSolver::forwardSubStepGPU2(Real dt)
     //		cuSynchronize();
     //	}
     //}
-
+    CTimer timer4;
+    timer4.start();
     // Update velocity .
     if (m_nBodies)
     {
         cuExecute(m_nBodies, PBD_updateVelocity, m_GPUBodys.begin(), m_nBodies, dt);
     }
-
+    timer4.stop();
+    //printf("time4 = %f", timer4.getElapsedTime());
     //// solve velocity constraints.
     //if (m_nJoints > 0 && m_solveVelocity)
     //{

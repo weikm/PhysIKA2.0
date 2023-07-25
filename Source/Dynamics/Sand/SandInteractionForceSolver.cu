@@ -299,7 +299,7 @@ void SandInteractionForceSolver::computeSingleBuoyance(int i, Real dt)
     Vector3d& debLinv = (m_hostBody + i)->linVelocity;
     Vector3d& debAngv = (m_hostBody + i)->angVelocity;
 
-    if (true)
+    if (false)
     {
         printf("**** %d \n", i);
 
