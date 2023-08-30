@@ -92,6 +92,9 @@ bool HeightFieldSandRigidInteraction::initialize()
 
 void HeightFieldSandRigidInteraction::advance(Real dt)
 {
+    CTimer timer;
+
+    timer.start();
     //debug
     if (m_rigidSolver && m_sandSolver)
         //if(false)
@@ -108,20 +111,23 @@ void HeightFieldSandRigidInteraction::advance(Real dt)
         m_rigidSolver->updateGPUToCPUBody();
     }
     //----------------------
+    timer.stop();
+    //printf("time1 = %f", timer.getElapsedTime());
 
-    CTimer timer;
-    timer.start();
+    CTimer timer2;
+    timer2.start();
 
     if (!m_sandSolver)
     {
-        double subdt = dt / m_subStep;
-        for (int i = 0; i < m_subStep; ++i)
-        {
-            this->advectSubStep(subdt);
-            printf("  Cur time step:  %f\n", subdt);
-            //float subdt2 = m_sandSolver->getMaxTimeStep();
-            //printf("  Cur max time step:  %f\n", subdt2);
-        }
+        //double subdt = dt / m_subStep;
+        //for (int i = 0; i < m_subStep; ++i)
+        //{
+        //    this->advectSubStep(subdt);
+        //    printf("  Cur time step:  %f\n", subdt);
+        //    //float subdt2 = m_sandSolver->getMaxTimeStep();
+        //    //printf("  Cur max time step:  %f\n", subdt2);
+        //}
+        
     }
     else
     {
@@ -137,18 +143,22 @@ void HeightFieldSandRigidInteraction::advance(Real dt)
         } while (dt > 0);
     }
 
-    timer.stop();
+    timer2.stop();
+    //printf("time2 = %f", timer2.getElapsedTime());
+
+
     double elapTime = timer.getElapsedTime();
 
     ++m_totalFrame;
     m_totalTime += elapTime;
     double avgTime = m_totalTime / m_totalFrame;
-    printf("Elapsed time:  %lf,  Average time: %lf\n", elapTime, avgTime);
+    //printf("Elapsed time:  %lf,  Average time: %lf\n", elapTime, avgTime);
 }
 
 void HeightFieldSandRigidInteraction::advectSubStep(Real dt)
 {
-
+    CTimer a;
+    a.start();
     // Advect sand.
     if (m_sandSolver)
     //if(false)
@@ -200,6 +210,9 @@ void HeightFieldSandRigidInteraction::advectSubStep(Real dt)
                 m_sandSolver->applyVelocityChange(dt, m_minGi, m_minGj, m_sizeGi, m_sizeGj);
             }
         }
+
+        a.stop();
+        //std::cout << "GeneralSolverTime = " << a.getElapsedTime() << std::endl;
         //tang
         //m_rigidSolver->popBodyData();
         //m_rigidSolver->updateCPUToGPUBody();
@@ -229,11 +242,23 @@ void HeightFieldSandRigidInteraction::detectLandRigidContacts(PBDSolver* solver,
 {
     if (m_landRigidContactDetector)
     {
+        CTimer a;
+        a.start();
+        //Ð§ÂÊÆ¿¾±£¬×ï¿ý»öÊ×¡£
         m_landRigidContactDetector->doCollision();
 
+        a.stop();
+        //printf("Collisiontime1 = %f", a.getElapsedTime());
+
+
+        CTimer b;
+        b.start();
         auto& contactArr = m_landRigidContactDetector->varContacts()->getValue();
         m_rigidSolver->setContactJoints(contactArr,
                                         contactArr.size());
+        b.stop();
+        //printf("Collisiontime2 = %f", b.getElapsedTime());
+
     }
 }
 

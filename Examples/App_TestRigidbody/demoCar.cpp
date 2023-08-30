@@ -109,7 +109,7 @@ void DemoCar2::advance(Real dt)
     //pjoint->setMotorForce(force);
 }
 
-void DemoCar2::build(bool useGPU)//目标碰撞部分代码就在这
+void DemoCar2::build(bool useGPU)
 {
     SceneGraph&                                 scene = SceneGraph::getInstance();
     std::shared_ptr<StaticBoundary<DataType3f>> root  = scene.createNewScene<StaticBoundary<DataType3f>>();

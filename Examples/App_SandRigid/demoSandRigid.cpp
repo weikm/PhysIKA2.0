@@ -875,9 +875,10 @@ void                               DemoHeightFieldSandLandMultiRigid::createScen
 DemoHeightFieldSandLandMultiRigid2* DemoHeightFieldSandLandMultiRigid2::m_instance = 0;//用的这个
 void                                DemoHeightFieldSandLandMultiRigid2::createScene()
 {
+    int a = 2;
     SandGridInfo sandinfo;
-    sandinfo.nx               = 64 * 4;
-    sandinfo.ny               = 64 * 4;
+    sandinfo.nx               = 64 * 4*a;
+    sandinfo.ny               = 64 * 4*a;
     sandinfo.griddl           = 0.03;
     sandinfo.mu               = 0.9;//origin0.9//改成1.9没区别
     sandinfo.drag             = 0.95;
@@ -923,6 +924,18 @@ void                                DemoHeightFieldSandLandMultiRigid2::createSc
     fillGrid2D(&(surfaceHeight[0]), sandinfo.nx, sandinfo.ny, 0.25f);//0.25
     //fillGrid2D(&(surfaceHeight[0]), sandinfo.nx, sandinfo.ny, humpBlock, 0.5f);
 
+    //for (int i = 0; i < sandinfo.nx; ++i)
+    //{
+    //    for (int j = 0; j < sandinfo.ny; ++j)
+    //    {
+    //        if(i> sandinfo.nx/4 && i< sandinfo.nx / 4*3&& j> sandinfo.nx / 4 && j < sandinfo.nx / 4 *3)
+    //        surfaceHeight[j * sandinfo.nx + i] = 0.25;
+    //    }
+    //}
+
+
+
+
     HostHeightField1d hosthf;
     hosthf.resize(sandinfo.nx, sandinfo.ny);
     HeightFieldLoader hfloader;
@@ -937,13 +950,15 @@ void                                DemoHeightFieldSandLandMultiRigid2::createSc
     {
         for (int j = 0; j < sandinfo.ny; ++j)
         {
+            
             //landheight[i*sandinfo.ny + j] = 0;// lhland - dhland * j;
             //if (landheight[i*sandinfo.ny + j] < 0)
             //    landheight[i*sandinfo.ny + j] = 0.0f;
             double curh = 0.5 * maxh - hosthf(i, j);
-            if (curh < 0.4)//0.2
+            if (curh < 0.2)//0.2
                 curh = 0.2;//0.2
             landHeight[i * sandinfo.ny + j] = curh;
+            
         }
     }
     sandGrid.initialize(&(landHeight[0]), &(surfaceHeight[0]));
@@ -985,10 +1000,17 @@ void                                DemoHeightFieldSandLandMultiRigid2::createSc
 
         // Mesh renderer.
         auto renderModule = std::make_shared<RigidMeshRender>(landrigid->getTransformationFrame());
-        renderModule->setColor(Vector3f(210.0 / 255.0, 180.0 / 255.0, 140.0 / 255.0));
+        renderModule->setColor(Vector3f(128.0 / 255.0, 128.0 / 255.0, 128.0 / 255.0));//218,165,32
         landrigid->addVisualModule(renderModule);
     }
+    //bound land mesh
+    {
 
+
+
+
+
+    }
     /// ------  Rigid ------------
     std::shared_ptr<PBDSolverNode> rigidSim = std::make_shared<PBDSolverNode>();
     rigidSim->getSolver()->setUseGPU(true);
@@ -1000,6 +1022,7 @@ void                                DemoHeightFieldSandLandMultiRigid2::createSc
 
     // Car.
     double   scale1d = 1.;
+    double   scale1d_ = 0.9f;
     Vector3d scale3d(scale1d, scale1d, scale1d);
     Vector3f scale3f(scale1d, scale1d, scale1d);
 
@@ -1017,26 +1040,28 @@ void                                DemoHeightFieldSandLandMultiRigid2::createSc
     {
         Vector3f boundingsize;
         // Chassis mesh.
-        ObjFileLoader chassisLoader("../../Media/car2/chassis_cube.obj");
-
+        //ObjFileLoader chassisLoader("../../Media/car2/chassis_cube.obj");
+        ObjFileLoader chassisLoader("../../Media/car2/ch-out4.obj");
         chassisTri = std::make_shared<TriangleSet<DataType3f>>();
         chassisTri->setPoints(chassisLoader.getVertexList());
         chassisTri->setTriangles(chassisLoader.getFaceList());
         computeBoundingBox(chassisCenter, chassisSize, chassisLoader.getVertexList());
         chassisCenter *= scale3f;
         chassisSize *= scale3f;
-        chassisTri->scale(scale3f);
+        chassisTri->scale(scale3f * 1.8);
         chassisTri->translate(-chassisCenter);
+        chassisTri->translate(Vector3f(0,0.05f,0));
 
         // Chassis sdf.
         chassisSDF.loadSDF("../../Media/car2/chassis_cube.sdf");
-        chassisSDF.scale(scale1d);
+        chassisSDF.scale(scale1d * 1.2);
         chassisSDF.translate(-chassisCenter);
         //interactionSolver->addSDF(sdf);
 
         for (int i = 0; i < 4; ++i)
         {
-            string objfile("../../Media/car2/wheel.obj");
+            //string objfile("../../Media/car2/wheel.obj");
+            string objfile("../../Media/car2/out2.obj");
             string sdffile("../../Media/car2/wheel.sdf");
 
             // Wheel mesh.
@@ -1047,13 +1072,13 @@ void                                DemoHeightFieldSandLandMultiRigid2::createSc
             computeBoundingBox(wheelCenter[i], wheelSize[i], wheelLoader.getVertexList());
             wheelCenter[i] *= scale3f;
             wheelSize[i] *= scale3f;
-            wheelTri[i]->scale(scale3f);
+            wheelTri[i]->scale(Vector3f(scale1d_, scale1d_, scale1d_));
             wheelTri[i]->translate(-wheelCenter[i]);
 
             // Wheel sdf.
             DistanceField3D<DataType3f>& sdf = wheelSDF[i];
             sdf.loadSDF(sdffile);
-            sdf.scale(scale1d);
+            sdf.scale(scale1d_);
             sdf.translate(-wheelCenter[i]);
             //interactionSolver->addSDF(sdf);
         }
@@ -1063,16 +1088,16 @@ void                                DemoHeightFieldSandLandMultiRigid2::createSc
     rigidSim->addChild(m_car);
     m_car->m_rigidSolver = rigidSolver;
 
-    m_car->carPosition = Vector3f(0.35, 0.65, 1.5) + chassisCenter;
+    m_car->carPosition = Vector3f(0.35, 0.95, 6.0) + chassisCenter;
     //double rotRad = 90.0 / 180.0 * std::_Pi;
     //m_car->carRotation = Quaternion<float>(-std::sin(rotRad / 2.0), 0, 0., std::cos(rotRad / 2.0)).normalize();
     //double rotRad2 = std::_Pi;
     //m_car->carRotation = Quaternion<float>(0., std::sin(rotRad2 / 2.0), 0., std::cos(rotRad2 / 2.0)).normalize() * m_car->carRotation;
 
-    m_car->wheelRelPosition[0] = Vector3f(-0.3f, -0.2, -0.4f /* -0.01*/) * scale1d + wheelCenter[0] - chassisCenter;
-    m_car->wheelRelPosition[1] = Vector3f(+0.3f /*+0.01*/, -0.2, -0.4f /* +0.02*/) * scale1d + wheelCenter[1] - chassisCenter;
-    m_car->wheelRelPosition[2] = Vector3f(-0.3f, -0.2, 0.4f) * scale1d + wheelCenter[2] - chassisCenter;
-    m_car->wheelRelPosition[3] = Vector3f(+0.3f, -0.2, 0.4f) * scale1d + wheelCenter[3] - chassisCenter;
+    m_car->wheelRelPosition[0] = Vector3f(-0.3f, -0.2, -0.4f-0.2f /* -0.01*/) * scale1d + wheelCenter[0] - chassisCenter;
+    m_car->wheelRelPosition[1] = Vector3f(+0.3f /*+0.01*/, -0.2, -0.4f-0.2f /* +0.02*/) * scale1d + wheelCenter[1] - chassisCenter;
+    m_car->wheelRelPosition[2] = Vector3f(-0.3f, -0.2, 0.4f+0.2f) * scale1d + wheelCenter[2] - chassisCenter;
+    m_car->wheelRelPosition[3] = Vector3f(+0.3f, -0.2, 0.4f + 0.2f) * scale1d + wheelCenter[3] - chassisCenter;
     m_car->wheelRelRotation[0] = Quaternion<float>(0, 0, 0, 1);  // (0, 0.5, 0, 0.5).normalize();
     m_car->wheelRelRotation[1] = Quaternion<float>(0, 0, 0, 1);  //(0, 0.5, 0, 0.5).normalize();
     m_car->wheelRelRotation[2] = Quaternion<float>(0, 0, 0, 1);  //(0, 0.5, 0, 0.5).normalize();
@@ -1103,7 +1128,7 @@ void                                DemoHeightFieldSandLandMultiRigid2::createSc
     m_car->steeringUpperBound = 0.5;
 
     m_car->forwardForceAcc = 1000;
-    //m_car->breakForceAcc ;
+    
     m_car->steeringSpeed = 1.0;
     m_car->maxVel        = 2.5;
 
@@ -1113,7 +1138,7 @@ void                                DemoHeightFieldSandLandMultiRigid2::createSc
     // Add visualization module and topology module.
     m_car->m_chassis->setTopologyModule(chassisTri);
     auto chassisRender = std::make_shared<RigidMeshRender>(m_car->m_chassis->getTransformationFrame());
-    chassisRender->setColor(Vector3f(0.8, std::rand() % 1000 / ( double )1000, 0.8));
+    chassisRender->setColor(Vector3f(47.0f/255.0f, 139.0f / 255.0f/*std::rand() % 1000 / ( double )1000*/, 59.0f/255.0f));//47,79,79
     m_car->m_chassis->addVisualModule(chassisRender);
     interactionSolver->addSDF(chassisSDF, m_car->m_chassis->getId());
 
@@ -1121,14 +1146,40 @@ void                                DemoHeightFieldSandLandMultiRigid2::createSc
     float chassisRadius = chassisTri->computeBoundingRadius();
     m_car->m_chassis->setRadius(chassisRadius);
 
-    m_rigids.push_back(m_car->m_chassis);
+    //------------------
+    ObjFileLoader chassisLoader2("../../Media/car2/chassis_cube.obj");
+    std::shared_ptr<TriangleSet<DataType3f>> chassisTri2;
+    chassisTri2 = std::make_shared<TriangleSet<DataType3f>>();
+    chassisTri2->setPoints(chassisLoader2.getVertexList());
+    chassisTri2->setTriangles(chassisLoader2.getFaceList());
+    //computeBoundingBox(chassisCenter, chassisSize, chassisLoader2.getVertexList());
+    //chassisCenter *= scale3f;
+    //chassisSize *= scale3f;
+    chassisTri2->scale(Vector3f(1000.0f, 1.0f, 1000.0f));
+    chassisTri2->translate(-chassisCenter);
+    chassisTri2->translate(Vector3f(0, 0.0f, 0));//3.8
+
+    std::shared_ptr<RigidBody2<DataType3f>> addcube = std::make_shared<RigidBody2<DataType3f>>();
+    root->addChild(addcube);
+    addcube->setTopologyModule(chassisTri2);
+    auto chassisRender2 = std::make_shared<RigidMeshRender>(addcube->getTransformationFrame());
+    chassisRender2->setColor(Vector3f(238.0 / 255.0, 238.0 / 255.0, 238.0 / 255.0));
+    addcube->addVisualModule(chassisRender2);
+    addcube->setRadius(chassisRadius);
+    m_rigidRenders.push_back(chassisRender2);
+    //------------------
+    // 
+    //m_rigids.push_back(m_car->m_chassis);
     m_rigidRenders.push_back(chassisRender);
 
     for (int i = 0; i < 4; ++i)
     {
         m_car->m_wheels[i]->setTopologyModule(wheelTri[i]);
         auto renderModule = std::make_shared<RigidMeshRender>(m_car->m_wheels[i]->getTransformationFrame());
-        renderModule->setColor(Vector3f(0.8, std::rand() % 1000 / ( double )1000, 0.8));
+        //renderModule->setColor(Vector3f(0.8, std::rand() % 1000 / ( double )1000, 0.8));
+
+        //renderModule->setColor(Vector3f(47.0f / 255.0f, 139.0f / 255.0f, 59.0f / 255.0f));
+        renderModule->setColor(Vector3f(0.2f , 0.2f , 0.2f ));
         m_car->m_wheels[i]->addVisualModule(renderModule);
         interactionSolver->addSDF(wheelSDF[i], m_car->m_wheels[i]->getId());
 
@@ -1140,13 +1191,88 @@ void                                DemoHeightFieldSandLandMultiRigid2::createSc
         m_rigidRenders.push_back(renderModule);
     }
 
+    uint16_t numcar = 0;
+    m_newcar.resize(numcar);
+    for (uint16_t i = 0; i < numcar; ++i) {
+        m_newcar[i]= std::make_shared<PBDCar>();
+        m_newcar[i] = m_car;
+        m_newcar[i]->carPosition = m_car->carPosition + Vector3f(0.5, 0.0, 0.0);
+        m_newcar[i]->wheelRelPosition[0] = m_car->wheelRelPosition[0];
+        m_newcar[i]->wheelRelPosition[1] =   m_car->wheelRelPosition[1];
+        m_newcar[i]->wheelRelPosition[2] =   m_car->wheelRelPosition[2];
+        m_newcar[i]->wheelRelPosition[3] =   m_car->wheelRelPosition[3];
+        m_newcar[i]->wheelRelRotation[0] =   m_car->wheelRelRotation[0];
+        m_newcar[i]->wheelRelRotation[1] =   m_car->wheelRelRotation[1];
+        m_newcar[i]->wheelRelRotation[2] =   m_car->wheelRelRotation[2];
+        m_newcar[i]->wheelRelRotation[3] =   m_car->wheelRelRotation[3];
+
+        m_newcar[i]->wheelupDirection = m_car->wheelupDirection;
+        m_newcar[i]->wheelRightDirection = m_car->wheelRightDirection;
+
+        m_newcar[i]->chassisMass = 5000;  // 00;
+        m_newcar[i]->chassisInertia = RigidUtil::calculateCubeLocalInertia(m_newcar[i]->chassisMass, chassisSize);
+
+        m_newcar[i]->wheelMass[0] = wheelm;
+        m_newcar[i]->wheelInertia[0] = wheelI;
+        m_newcar[i]->wheelMass[1] = wheelm;
+        m_newcar[i]->wheelInertia[1] = wheelI;
+        m_newcar[i]->wheelMass[2] = wheelm;
+        m_newcar[i]->wheelInertia[2] = wheelI;
+        m_newcar[i]->wheelMass[3] = wheelm;
+        m_newcar[i]->wheelInertia[3] = wheelI;
+
+        m_newcar[i]->steeringLowerBound = -0.5;
+        m_newcar[i]->steeringUpperBound = 0.5;
+        m_newcar[i]->forwardForceAcc = 1000;
+        m_newcar[i]->steeringSpeed = 1.0;
+        m_newcar[i]->maxVel = 2.5;
+
+        m_newcar[i]->build();
+
+        // Add visualization module and topology module.
+        m_newcar[i]->m_chassis->setTopologyModule(chassisTri);
+        auto chassisRender = std::make_shared<RigidMeshRender>(m_newcar[i]->m_chassis->getTransformationFrame());
+        chassisRender->setColor(Vector3f(0.8, std::rand() % 1000 / (double)1000, 0.8));
+        m_newcar[i]->m_chassis->addVisualModule(chassisRender);
+        interactionSolver->addSDF(chassisSDF, m_newcar[i]->m_chassis->getId());
+
+        // Bounding radius of chassis.
+        float chassisRadius = chassisTri->computeBoundingRadius();
+        m_newcar[i]->m_chassis->setRadius(chassisRadius);
+
+
+        //m_rigids.push_back(m_car->m_chassis);
+        m_rigidRenders.push_back(chassisRender);
+
+        for (int j = 0; j < 4; ++j)
+        {
+            m_newcar[i]->m_wheels[j]->setTopologyModule(wheelTri[j]);
+            auto renderModule = std::make_shared<RigidMeshRender>(m_newcar[i]->m_wheels[j]->getTransformationFrame());
+            renderModule->setColor(Vector3f(0.8, std::rand() % 1000 / (double)1000, 0.8));
+            m_newcar[i]->m_wheels[j]->addVisualModule(renderModule);
+            interactionSolver->addSDF(wheelSDF[j], m_newcar[i]->m_wheels[j]->getId());
+
+            // Bounding radius of chassis.
+            float wheelRadius = wheelTri[j]->computeBoundingRadius();
+            m_newcar[i]->m_wheels[j]->setRadius(wheelRadius);
+
+            m_rigids.push_back(m_newcar[i]->m_wheels[j]);
+            m_rigidRenders.push_back(renderModule);
+        }
+
+        rigidSim->addChild(m_newcar[i]);
+    }
+
+
+
+
     interactionSolver->m_prigids = &(rigidSolver->getRigidBodys());
 
     // Translate camera position
     auto& camera_ = this->activeCamera();
     //camera_.translate(Vector3f(0, 1.5, 3));
     //camera_.setEyePostion(Vector3f(1.5, 1.5, 6));
-    Vector3f camPos(0, 3, 5);
+    Vector3f camPos(-5, 6, 14);//0 6 14
     camera_.lookAt(camPos, Vector3f(0, 0, 0), Vector3f(0, 1, 0));
 }
 

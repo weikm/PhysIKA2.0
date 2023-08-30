@@ -217,7 +217,7 @@ void TriangleRender::display()
         m_solidShader.setVec3("Light.La", 0.4f, 0.4f, 0.4f);
         m_solidShader.setVec3("Material.Ks", 0.8f, 0.8f, 0.8f);
         m_solidShader.setVec3("Light.Ls", 1.0f, 1.0f, 1.0f);
-        m_solidShader.setFloat("Material.Shininess", 100.0f);
+        m_solidShader.setFloat("Material.Shininess", 50.0f);
     }
 
     glEnableVertexAttribArray(1);

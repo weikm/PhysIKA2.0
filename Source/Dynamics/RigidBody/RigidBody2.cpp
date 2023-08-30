@@ -120,5 +120,6 @@ void RigidBody2<TDataType>::advance(Real dt)
     //std::cout << "  ** Rigid Pos: " << m_global_r[0] << "  " << m_global_r[1] << "  " << m_global_r[2] << std::endl;
     if (m_parent_joint)
         m_parent_joint->update(dt);
+
 }
 }  // namespace PhysIKA

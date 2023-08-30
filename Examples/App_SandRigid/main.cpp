@@ -33,7 +33,7 @@ int main()
 	std::cout << "   4:  两辆车" << std::endl;
 	std::cout << "   5:  connector" << std::endl;
     int caseid = 0;
-    std::cin >> caseid;
+    //std::cin >> caseid;
     
 	/*const VPE::PhysIKACarCreateInfo c;
 	c = ;*/
@@ -88,59 +88,57 @@ int main()
 
 
 
-    switch (caseid)
-    {
-        case 0: {
-            DemoParticleSandMultiRigid* demo = DemoParticleSandMultiRigid::getInstance();
-            demo->createScene();
-            demo->run();
-            break;
-        }
-        case 1: {
-            DemoParticleSandRigid_Sphere* demo = DemoParticleSandRigid_Sphere::getInstance();
-            demo->createScene();
-            demo->run();
-            break;
-		}
-		case 2: {//小车不稳，自动解体，问一下肖。经过之前的代码调整，不知咋的，就不解体了。可能因为PBDCar。
-			//现在是没有车辙印
+    //switch (caseid)
+    //{
+  //      case 0: {
+  //          DemoParticleSandMultiRigid* demo = DemoParticleSandMultiRigid::getInstance();
+  //          demo->createScene();
+  //          demo->run();
+  //          break;
+  //      }
+  //      case 1: {
+  //          DemoParticleSandRigid_Sphere* demo = DemoParticleSandRigid_Sphere::getInstance();
+  //          demo->createScene();
+  //          demo->run();
+  //          break;
+		//}
+		//case 2: {//小车不稳，自动解体，问一下肖。经过之前的代码调整，不知咋的，就不解体了。可能因为PBDCar。
+		//	//现在是没有车辙印
             DemoHeightFieldSandLandMultiRigid2* demo = DemoHeightFieldSandLandMultiRigid2::getInstance();
             demo->createScene();
             demo->run();
-            break;
-        }
-		case 3: {//cuda出现异常
-            DemoHeightFieldSandLandMultiRigidTest* demo = DemoHeightFieldSandLandMultiRigidTest::getInstance();
-            demo->createScene();
-            demo->run();
-            break;
-        }
-		case 4: {//二车//现在car2：穿模（看一下能撞的car类，和本项目中的car类，又什么区别）
-            DemoParticleSandMultiRigid2* demo = DemoParticleSandMultiRigid2::getInstance();
-            demo->createScene();
-			//std::printf("wkm%f %f %f %f", demo->m_car->wheelRelRotation[0], demo->m_car->wheelRelRotation[1], demo->m_car->wheelRelRotation[2], demo->m_car->wheelRelRotation[3]);//始终是0000
-			//底盘角度也输出看看
-			//std::printf("wkm%f %f %f %f", demo->m_car->carRotation[0], demo->m_car->carRotation[1], demo->m_car->carRotation[2], demo->m_car->carRotation[3]);//始终是0001
-			
-			demo->run();
-			
-			
-            break;
-        }
+        //    break;
+        //}
+		//case 3: {//cuda出现异常
+  //          DemoHeightFieldSandLandMultiRigidTest* demo = DemoHeightFieldSandLandMultiRigidTest::getInstance();
+  //          demo->createScene();
+  //          demo->run();
+  //          break;
+  //      }
+		//case 4: {//二车//现在car2：穿模（看一下能撞的car类，和本项目中的car类，又什么区别）
+  //          DemoParticleSandMultiRigid2* demo = DemoParticleSandMultiRigid2::getInstance();
+  //          demo->createScene();
+		//	//std::printf("wkm%f %f %f %f", demo->m_car->wheelRelRotation[0], demo->m_car->wheelRelRotation[1], demo->m_car->wheelRelRotation[2], demo->m_car->wheelRelRotation[3]);//始终是0000
+		//	//底盘角度也输出看看
+		//	//std::printf("wkm%f %f %f %f", demo->m_car->carRotation[0], demo->m_car->carRotation[1], demo->m_car->carRotation[2], demo->m_car->carRotation[3]);//始终是0001
+		//	
+		//	demo->run();
+		//	
+		//	
+  //          break;
+  //      }
 
-		
-		case 5: {//connector
-			connector_use_demo* demo = connector_use_demo::getInstance();//mei delate//好好看看上面那四个是怎么调用的
-			demo->createScene(b);
-			demo->run();
-			//接口上层写个样例，继承GLApp，这个样例来调用桥接接口。
-			break;
-
-
-		}
-        default:
-            break;
-    }
+		//
+		//case 5: {//connector
+		//	connector_use_demo* demo = connector_use_demo::getInstance();//mei delate//好好看看上面那四个是怎么调用的
+		//	demo->createScene(b);
+		//	demo->run();
+		//	//接口上层写个样例，继承GLApp，这个样例来调用桥接接口。
+		//	break;
+		//}
+    //    default:
+    //        break;
+    //}
 
     //DemoParticleSand* demo = DemoParticleSand::getInstance();
     //demo->createScene();

@@ -28,7 +28,7 @@ namespace PhysIKA {
 GLApp::GLApp()
     : m_winName(std::string("PhysIKA 1.0")), m_winID(-1), m_width(640), m_height(480), display_fps_(true), screen_capture_file_index_(0), event_mode_(false), m_bAnimate(false), m_secLineNum(10), m_bShowBackground(true)
 {
-    background_color_ = Color(0.6, 0.6, 0.6, 1.0);
+    background_color_ = Color(135.0/255.0, 206./255.0, 235./255.0, 1.0);//0.6, 0.6, 0.6, 1.0
     text_color_       = Color(1.0f, 1.0f, 1.0f, 1.0f);
     initCallbacks();
 }
